@@ -1,0 +1,11 @@
+---
+
+- hosts: aws
+  gather_facts: true
+  become: true
+  roles:
+    - k3s/prereq
+    - k3s/download
+    - k3s/raspberrypi
+    - k3s/server
+
