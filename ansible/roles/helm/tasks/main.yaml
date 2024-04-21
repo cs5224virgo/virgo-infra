@@ -1,0 +1,14 @@
+---
+
+- name: virgo installation
+  kubernetes.core.helm:
+    name: virgo
+    namespace: virgo
+    create_namespace: true
+    chart_ref: ../../helmcharts/virgo
+    atomic: true
+    state: present
+    values:
+      virgochatip: "{{ virgochat_public_ip }}"
+      virgochatdbpassword: "{{ virgodb_password }}"
+      virgochatdbendpoint: "{{ virgodb_endpoint }}"

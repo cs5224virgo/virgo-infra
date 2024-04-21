@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: virgo-backend-config
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+data:
+  config.yaml: |
+    env: prod
+    port: "7000"
+    frontend_url: "http://{{ .Values.virgochatip }}"
+    db:
+      username: virgo
+      password: {{ .Values.virgochatdbpassword }}
+      hostname: {{ .Values.virgochatdbendpoint }}
+      port: 5432
+      name: virgo

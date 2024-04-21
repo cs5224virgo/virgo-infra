@@ -1,2 +1,4 @@
 virgo-dev.pem
 virgochat-key.pem
+ansible-vars.yaml
+kubeconfig

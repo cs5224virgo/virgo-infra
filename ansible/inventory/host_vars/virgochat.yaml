@@ -1,0 +1,12 @@
+---
+# ansible
+ansible_port: 22
+ansible_host: '{{ virgochat_public_ip }}'
+ansible_user: ubuntu
+ansible_ssh_private_key_file: ./virgochat-key.pem
+
+# k3s
+k3s_node_ip: '{{ virgochat_private_ip }}'
+k3s_node_name: 'virgochat'
+k3s_extra_server_args: >-
+  --node-external-ip '{{ virgochat_public_ip }}'

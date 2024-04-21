@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: virgo-frontend-config
+data:
+  default.conf: |
+    server {
+      listen       80;
+      listen  [::]:80;
+      server_name  localhost;
+
+      location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+        try_files $uri /index.html;
+      }
+      
+      location ~ ^/api/(.*)$ {
+        # Ensure the full original request URI is passed
+        proxy_pass http://virgo-backend.virgo.svc.cluster.local:7000/$1$is_args$args;
+        # Optional: Set headers if not already
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+
+      location ~ ^/ws/(.*)$ {
+        # Ensure the full original request URI is passed
+        proxy_pass http://virgo-backend.virgo.svc.cluster.local:7000/v1/$1$is_args$args;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+        root   /usr/share/nginx/html;
+      }
+    }

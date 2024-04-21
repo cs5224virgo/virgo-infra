@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: virgo-migrate
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+spec:
+  template:
+    metadata:
+      labels:
+        app: virgo-migrate
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: virgo-backend
+        image: cs5224virgo/virgo-backend
+        ports:
+        - containerPort: 7000
+          name: web
+        command: ["/app/virgo"]
+        args: ["migrate", "--config=/etc/config/config.yaml"]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: virgo-backend-config

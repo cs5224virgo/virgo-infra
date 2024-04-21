@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: virgo-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: virgo-frontend
+  template:
+    metadata:
+      labels:
+        app: virgo-frontend
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/frontend-configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - name: virgo-frontend
+        image: cs5224virgo/virgo-frontend
+        ports:
+        - containerPort: 80
+          name: web
+        # env:
+        # - name: REACT_APP_SERVER_URL
+        #   value: "http://{{ .Values.virgochatip }}:30001"
+        # - name: REACT_APP_WEBSOCKET_SERVER_URL
+        #   value: "ws://{{ .Values.virgochatip }}:30001/v1/ws"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: virgo-frontend-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: virgo-frontend
+spec:
+  selector:
+    app: virgo-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    name: web
+  type: ClusterIP
+  # type: LoadBalancer
+  # externalTrafficPolicy: Local
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: virgo-frontend
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.tls: "false" # Ensure TLS is enabled for this Ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: virgo-frontend
+            port:
+              name: web
+
